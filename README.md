@@ -80,19 +80,64 @@ auto → Evren → Ollama → OpenAI → Gemini → Anthropic
 
 ## Installation
 
+Open a terminal and clone the repository. The `cd` command moves into the
+project directory; run the remaining commands from there:
+
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+git clone https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room.git
+cd Autonomous-Financial-Agent-War-Room
+```
+
+If you are using an existing project directory whose path contains spaces,
+put the entire path in double quotes so Bash treats it as one argument. Replace
+`your-user` with your Linux username:
+
+```bash
+cd "/home/your-user/Autonomous Financial Agent War Room"
+```
+
+You can also escape each space with a backslash, but quotes are easier to read.
+
+On Ubuntu or Debian, install Python, `venv`, and Git if they are not already
+available:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip
+```
+
+Create and activate a virtual environment, then install the project
+dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+After activation, the terminal prompt usually shows `(.venv)`. The commands
+below assume that you are still in the project directory and that the virtual
+environment is activated. If you open a new terminal, enter the project
+directory and activate it again:
+
+```bash
+cd Autonomous-Financial-Agent-War-Room
+source .venv/bin/activate
 ```
 
 ## Configuration
 
+Create the local configuration file:
+
 ```bash
 cp .env.example .env
+nano .env
 ```
 
-Then edit `.env`. Every variable is optional; the most common ones:
+In the editor, add your provider settings and API key where needed. Save in
+Nano with `Ctrl+O`, press `Enter`, then exit with `Ctrl+X`. Every variable is
+optional; the most common ones are:
 
 ```dotenv
 # auto | evren | ollama | openai | gemini | anthropic | fallback
@@ -126,6 +171,9 @@ HISTORY_PERIOD=1y
 > is the safe template.
 
 ## Usage
+
+With the project directory open and `.venv` activated, start the app from the
+terminal:
 
 ```bash
 python main.py                      # pre-filled ticker (AAPL)
@@ -183,10 +231,12 @@ tests/                Offline test suite (mock provider + fixtures)
 
 ## Development
 
+Run these commands from the project directory with `.venv` activated:
+
 ```bash
-ruff check .            # lint
-mypy .                  # type-check
-pytest                  # tests (fully offline, no network)
+ruff check .       # lint
+mypy .             # type-check
+pytest             # tests (fully offline, no network)
 ```
 
 The test suite never touches the network: `tests/mock_evren.py` implements the
@@ -202,4 +252,10 @@ tool execution.
 - Output depends on the chosen model; reasoning-heavy models may take several
   minutes per debate. Use `--rounds 2` or `--fast` for a quicker run.
 - This tool is for research and debate simulation — **not financial advice**.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for the
+full license text.
+
 # Autonomous-Financial-Agent-War-Room
