@@ -49,13 +49,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--rounds",
         type=int,
         default=settings.debate_rounds,
-        help="Total debate rounds (>=2). Default: 3 = pitch, cross, synthesis.",
+        help="Total debate rounds (>=2). Default: 2 = pitch and synthesis; "
+        "3 adds a cross-examination.",
     )
     parser.add_argument(
         "--fast",
         action="store_true",
-        help="Quick debate: tools only in the pitch round, lower temperature. "
-        "Fewer LLM round trips - ideal for impatient gateways.",
+        help="Only offer market-data tools in the pitch round and lower "
+        "the temperature.",
     )
     parser.add_argument(
         "--max-tokens",

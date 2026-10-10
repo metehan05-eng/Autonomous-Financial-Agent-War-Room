@@ -110,8 +110,8 @@ class Settings:
     request_timeout: float = 45.0
     #: Timeout used while probing whether a provider is reachable (seconds).
     probe_timeout: float = 2.5
-    #: Number of debate rounds (Round 3 is always the CRO synthesis).
-    debate_rounds: int = 3
+    #: Number of debate rounds (the default is pitch + CRO synthesis).
+    debate_rounds: int = 2
     max_tokens: int = 3000
     temperature: float = 0.7
     #: Fast mode: agents only call tools during the initial pitch, the debate
@@ -177,7 +177,7 @@ def load_settings() -> Settings:
         anthropic_model=_env_str("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
         request_timeout=_env_float("LLM_TIMEOUT", 45.0),
         probe_timeout=_env_float("LLM_PROBE_TIMEOUT", 2.5),
-        debate_rounds=max(1, _env_int("LLM_ROUNDS", 3)),
+        debate_rounds=max(1, _env_int("LLM_ROUNDS", 2)),
         max_tokens=_env_int("LLM_MAX_TOKENS", 3000),
         temperature=_env_float("LLM_TEMPERATURE", 0.7),
         fast=_env_str("LLM_FAST", "0").lower() in ("1", "true", "yes", "on"),

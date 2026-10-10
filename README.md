@@ -33,6 +33,10 @@ rationale  three concrete, data-backed reasons
 If the CRO answer does not contain valid JSON, the decision is derived
 deterministically from the same indicators, so a consensus always exists.
 
+By default the debate runs two rounds (the three opening pitches followed by
+the CRO synthesis). Use `--rounds 3` to add a cross-examination, or a higher
+value for additional cross-examination rounds.
+
 ### The four desks
 
 | Agent | Emoji | Role |
@@ -160,7 +164,7 @@ ANTHROPIC_API_KEY=
 
 # Behaviour
 LLM_TIMEOUT=45
-LLM_ROUNDS=3
+LLM_ROUNDS=2
 LLM_MAX_TOKENS=3000
 LLM_TEMPERATURE=0.7
 DEFAULT_TICKER=AAPL
@@ -179,6 +183,7 @@ terminal:
 python main.py                      # pre-filled ticker (AAPL)
 python main.py --ticker BTC-USD     # pre-fill another symbol
 python main.py --no-llm             # deterministic rule engine, offline
+python main.py --rounds 3           # add one cross-examination
 python main.py --rounds 4           # pitch + 2 cross-examinations + synthesis
 python main.py --fast               # quicker run: tools only in the pitch round
 python main.py --max-tokens 4000    # larger output budget per call
@@ -250,7 +255,8 @@ tool execution.
 - Yahoo Finance may throttle or block `Ticker.info`; fundamentals are treated
   as best effort and never crash the UI.
 - Output depends on the chosen model; reasoning-heavy models may take several
-  minutes per debate. Use `--rounds 2` or `--fast` for a quicker run.
+  minutes per debate. Use the default two rounds for a shorter run, or
+  `--fast` to limit market-data tools to the initial pitch.
 - This tool is for research and debate simulation — **not financial advice**.
 
 ## License

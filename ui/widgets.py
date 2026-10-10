@@ -25,6 +25,8 @@ __all__ = ["DebateLog", "MetricCard", "VerdictBanner", "confidence_meter"]
 _MAX_REASONING_CHARS = 4000
 #: Characters of reasoning shown in the rendered log line.
 _VISIBLE_REASONING_CHARS = 600
+# Limit expensive RichLog rebuilds while keeping streamed output responsive.
+_STREAM_REFRESH_INTERVAL = 1 / 30
 
 
 def _row(label: str, value: str, value_style: str = "") -> Text:
@@ -230,6 +232,7 @@ class DebateLog(RichLog):
         self._streams: dict[str, _StreamEntry] = {}
         self._stream_order: list[str] = []
         self._anchor: int = 0
+        self._stream_refresh_pending = False
 
     # ------------------------------------------------------------------ #
     # Lifecycle
@@ -239,6 +242,7 @@ class DebateLog(RichLog):
         self._streams.clear()
         self._stream_order.clear()
         self._anchor = 0
+        self._stream_refresh_pending = False
         super().clear()
         return self
 
@@ -311,7 +315,7 @@ class DebateLog(RichLog):
         if key not in self._streams:
             self._streams[key] = _StreamEntry(spec=agent_spec, round_index=round_index)
             self._stream_order.append(key)
-        self._rebuild()
+        self._refresh_live_region()
 
     def push_stream(
         self, agent_spec: AgentSpec, round_index: int, mode: str, text: str
@@ -338,7 +342,7 @@ class DebateLog(RichLog):
         else:
             entry.content += text
         entry.frozen = None
-        self._rebuild()
+        self._schedule_stream_refresh()
 
     def stream_tool(
         self, agent_spec: AgentSpec, round_index: int, text: str
@@ -349,7 +353,7 @@ class DebateLog(RichLog):
             return
         entry.tools.append(text)
         entry.frozen = None
-        self._rebuild()
+        self._refresh_live_region()
 
     def stream_tool_result(
         self, agent_spec: AgentSpec, round_index: int, text: str
@@ -376,7 +380,7 @@ class DebateLog(RichLog):
             entry.content = final_text
         entry.finished = True
         entry.frozen = None
-        self._rebuild()
+        self._refresh_live_region()
         self._commit_finished()
 
     def end_all_streams(self) -> None:
@@ -390,7 +394,28 @@ class DebateLog(RichLog):
             entry.frozen = None
             changed = True
         if changed:
+            self._refresh_live_region()
+
+    def _schedule_stream_refresh(self) -> None:
+        """Coalesce rapid token deltas into at most 30 live redraws per second."""
+        if self._stream_refresh_pending:
+            return
+        if not self.is_mounted:
             self._rebuild()
+            return
+        self._stream_refresh_pending = True
+        self.set_timer(_STREAM_REFRESH_INTERVAL, self._flush_stream_refresh)
+
+    def _flush_stream_refresh(self) -> None:
+        """Render accumulated stream deltas and clear the pending refresh."""
+        if self._stream_refresh_pending:
+            self._stream_refresh_pending = False
+            self._rebuild()
+
+    def _refresh_live_region(self) -> None:
+        """Apply structural stream changes immediately."""
+        self._stream_refresh_pending = False
+        self._rebuild()
         self._commit_finished()
 
     # ------------------------------------------------------------------ #

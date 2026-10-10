@@ -175,8 +175,8 @@ class WarRoomApp(App):
         )
         log.system(
             "Reasoning streams live while each agent thinks. Esc=cancel · "
-            "Ctrl+S=export transcript. A full debate takes a few minutes; "
-            "--rounds 2 or --fast for a quicker run."
+            "Ctrl+S=export transcript. Default: pitch + synthesis; "
+            "--rounds 3 adds cross-examination."
         )
 
     # ------------------------------------------------------------------ #
