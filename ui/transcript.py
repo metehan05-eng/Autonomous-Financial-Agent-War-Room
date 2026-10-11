@@ -30,11 +30,20 @@ class AgentBlock:
         self.reasoning: list[str] = []
         self.tools: list[str] = []
         self.content: str = ""
+        #: Set when a tool round trip starts, so the next reasoning segment
+        #: is separated from the previous one in :attr:`thinking`.
+        self._reasoning_break: bool = False
 
     @property
     def thinking(self) -> str:
-        """Joined reasoning chain (may span tool round trips)."""
-        return "\n".join(part for part in self.reasoning if part)
+        """Joined reasoning chain (may span tool round trips).
+
+        Streamed reasoning arrives as many tiny token fragments; they are
+        concatenated (not newline-joined) so the exported chain stays
+        readable, while genuine segment boundaries (after a tool call) are
+        preserved as blank lines.
+        """
+        return "".join(self.reasoning).strip()
 
 
 class DebateTranscript:
@@ -70,9 +79,13 @@ class DebateTranscript:
             agent_block = self._ensure_agent(event.agent, event.round_index)
             agent_block.reasoning = []
             agent_block.content = ""
+            agent_block._reasoning_break = False
         elif event.kind == "stream_delta" and event.agent is not None:
             agent_block = self._ensure_agent(event.agent, event.round_index)
             if event.mode == "reasoning":
+                if agent_block._reasoning_break:
+                    agent_block.reasoning.append("\n\n")
+                    agent_block._reasoning_break = False
                 agent_block.reasoning.append(event.text)
             elif event.mode == "content":
                 agent_block.content += event.text
@@ -83,6 +96,7 @@ class DebateTranscript:
         elif event.kind == "tool" and event.agent is not None:
             agent_block = self._ensure_agent(event.agent, event.round_index)
             agent_block.tools.append(event.text)
+            agent_block._reasoning_break = True
         elif event.kind == "tool_result" and event.agent is not None:
             agent_block = self._ensure_agent(event.agent, event.round_index)
             if agent_block.tools:
