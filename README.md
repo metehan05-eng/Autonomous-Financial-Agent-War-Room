@@ -1,5 +1,7 @@
 # Autonomous Financial Agent War Room
 
+[![CI](https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room/actions/workflows/ci.yml/badge.svg)](https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room/actions/workflows/ci.yml)
+
 A terminal **multi-agent "war room"** where four AI desks debate a financial
 instrument and a Chief Risk Officer delivers a single, evidence-backed
 verdict. Everything streams live into a [Textual](https://textual.textualize.io/)
