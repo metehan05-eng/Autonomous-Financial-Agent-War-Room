@@ -25,6 +25,21 @@ from ui.widgets import DebateLog, MetricCard, VerdictBanner
 __all__ = ["WarRoomApp"]
 
 
+def _export_directory() -> Path:
+    """Folder transcript exports are written to.
+
+    Prefers ``./exports`` (works for pipx/global installs) and falls back to
+    the package directory when the current directory is not writable.
+    """
+    for candidate in (Path.cwd() / "exports", BASE_DIR / "exports"):
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            return candidate
+        except OSError:
+            continue
+    return BASE_DIR / "exports"
+
+
 class WarRoomApp(App):
     """Autonomous Financial Agent War Room - terminal user interface.
 
@@ -224,14 +239,17 @@ class WarRoomApp(App):
     def _save_transcript(self) -> Path | None:
         """Write the accumulated transcript under ``exports/``.
 
+        The folder is created in the current working directory first so an
+        installed (pipx) run never writes into site-packages; the source
+        checkout location is used only when the cwd is not usable.
+
         Returns:
             The written file path, or ``None`` when there is nothing to save.
         """
         if not (self.transcript.ticker or self.transcript.rounds):
             return None
-        directory = BASE_DIR / "exports"
         try:
-            path = self.transcript.write(directory)
+            path = self.transcript.write(_export_directory())
         except Exception as exc:
             self.notify(f"Cannot export transcript: {exc}", severity="error", timeout=3)
             return None
@@ -291,8 +309,10 @@ class WarRoomApp(App):
                 log.error(f"Unexpected failure: {exc}")
         finally:
             # Only the most recent run may restore the idle state; the widget
-            # tree may also be gone when the app is shutting down.
-            self._debate_worker = None
+            # tree may also be gone when the app is shutting down. The worker
+            # handle itself is intentionally left in place: a restarted run
+            # overwrites it synchronously, and clearing it here would race
+            # with that assignment and break Esc-cancel on the new run.
             if token == self._run_sequence:
                 try:
                     start_button.disabled = False

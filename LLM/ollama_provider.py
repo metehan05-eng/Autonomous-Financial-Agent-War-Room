@@ -153,15 +153,20 @@ class OllamaProvider(LLMProvider):
                         f"ollama: HTTP {response.status_code} - "
                         f"{body.strip()[:200]}"
                     )
-                async for line in response.aiter_lines():
-                    line = (line or "").strip()
-                    if not line.startswith("data:"):
+                async for raw_line in response.aiter_lines():
+                    line = (raw_line or "").strip()
+                    if not line:
                         continue
-                    data = line[5:].strip()
-                    if data == "[DONE]":
-                        break
+                    # Native Ollama streams newline-delimited JSON (no prefix);
+                    # some proxies wrap it in Server-Sent Events ("data: ...").
+                    if line.startswith("data:"):
+                        line = line[5:].strip()
+                        if line == "[DONE]":
+                            break
+                        if not line:
+                            continue
                     try:
-                        event = json.loads(data)
+                        event = json.loads(line)
                     except (json.JSONDecodeError, ValueError):
                         continue
                     if event.get("error"):
