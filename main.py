@@ -11,13 +11,44 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import asyncio
 import sys
 from collections.abc import Sequence
 from dataclasses import replace
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 
-from config import APP_NAME, load_settings
+from config import APP_NAME, Settings, load_settings
 from LLM import build_router
 from ui.app import WarRoomApp
+
+#: Fallback used when the package is run from a source checkout (not installed).
+_FALLBACK_VERSION = "0.1.0"
+
+
+def _app_version() -> str:
+    """Installed package version, or a sensible default for source runs."""
+    try:
+        return _pkg_version("financial-agent-war-room")
+    except PackageNotFoundError:
+        return _FALLBACK_VERSION
+
+
+def _check_backend(settings: Settings) -> int:
+    """Probe the configured LLM backend without starting the TUI.
+
+    Returns:
+        ``0`` when a backend is reachable, ``1`` otherwise.
+    """
+    router = build_router(settings)
+    try:
+        provider = asyncio.run(router.resolve())
+    except Exception as exc:
+        print(f"✗ No usable LLM backend: {exc}", file=sys.stderr)
+        return 1
+    kind = "rule engine" if provider.name == "fallback" else "LLM provider"
+    print(f"✓ Backend ready — {kind}: {provider.name} / {provider.model_label}")
+    return 0
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -65,6 +96,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Maximum output tokens per call. Keep large enough for the answer "
         "to survive chain-of-thought (default 3000).",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Probe the configured LLM backend, print the result and exit "
+        "without launching the UI.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_app_version()}",
+    )
     return parser.parse_args(argv)
 
 
@@ -86,6 +128,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if args.no_llm:
         settings = replace(settings, provider="fallback")
+
+    if args.check:
+        return _check_backend(settings)
 
     app = WarRoomApp(
         initial_ticker=args.ticker,
