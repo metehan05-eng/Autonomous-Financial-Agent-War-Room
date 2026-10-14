@@ -1,8 +1,80 @@
-# Tooling configuration for the Autonomous Financial Agent War Room.
+# Packaging + tooling configuration for the Autonomous Financial Agent War Room.
 #
-# The runtime dependencies live in requirements.txt; this file only holds
-# shared configuration for ruff, pytest and mypy so that lint/type/test runs
-# are reproducible on any machine.
+# Runtime dependencies are declared under [project].dependencies (mirrored in
+# requirements.txt for plain `pip install -r` workflows). This file also holds
+# shared configuration for ruff, pytest and mypy so lint/type/test runs are
+# reproducible on any machine.
+
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financial-agent-war-room"
+version = "0.1.0"
+description = "Multi-agent market debate in your terminal, decided by a Chief Risk Officer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Metehan", email = "metehan05-eng@users.noreply.github.com" },
+]
+keywords = [
+    "finance",
+    "llm",
+    "multi-agent",
+    "textual",
+    "tui",
+    "trading",
+    "ai-agents",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "yfinance>=0.2.38",
+    "pandas>=2.0.0",
+    "ta>=0.11.0",
+    "textual>=0.50.0",
+    "rich>=13.7.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "openai>=1.40.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room"
+Repository = "https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room"
+Issues = "https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room/issues"
+
+[project.scripts]
+financial-warroom = "main:main"
+warroom = "main:main"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "build>=1.2",
+    "twine>=5",
+]
+
+[tool.setuptools]
+py-modules = ["main", "config"]
+packages = ["agents", "LLM", "ui", "data"]
 
 [tool.ruff]
 target-version = "py310"

@@ -1,0 +1,38 @@
+# winget manifest skeleton (singleton) for the Autonomous Financial Agent War Room.
+#
+# Prerequisites: a self-contained Windows x64 build (e.g. built with PyInstaller)
+# zipped and attached to a GitHub release. Update InstallerUrl/InstallerSha256,
+# then validate and submit with:
+#
+#   winget validate packaging/winget/Metehan05.FinancialAgentWarRoom.yaml
+#   winget install --manifest packaging/winget/Metehan05.FinancialAgentWarRoom.yaml
+#
+# For publication, the manifest is typically split into version/installer/locale
+# files under manifests/m/Metehan05/FinancialAgentWarRoom/0.1.0/.
+PackageIdentifier: Metehan05.FinancialAgentWarRoom
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Metehan
+PublisherUrl: https://github.com/metehan05-eng
+PackageName: Financial Agent War Room
+PackageUrl: https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room
+License: MIT
+LicenseUrl: https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room/blob/main/LICENSE
+ShortDescription: Multi-agent market debate in your terminal.
+Moniker: financial-warroom
+Tags:
+  - finance
+  - tui
+  - llm
+  - multi-agent
+Installers:
+  - Architecture: x64
+    InstallerType: zip
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: financial-warroom.exe
+        PortableCommandAlias: financial-warroom
+    InstallerUrl: https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room/releases/download/v0.1.0/financial-warroom-windows-x64.zip
+    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+ManifestType: singleton
+ManifestVersion: 1.6.0

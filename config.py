@@ -20,7 +20,10 @@ except ImportError:  # pragma: no cover
     load_dotenv = None  # type: ignore[assignment]
 
 BASE_DIR = Path(__file__).resolve().parent
+#: ``.env`` next to the source checkout (developer workflow).
 ENV_FILE = BASE_DIR / ".env"
+#: Per-user config file used by pipx/global installs.
+USER_ENV_FILE = Path.home() / ".config" / "financial-war-room" / ".env"
 
 APP_NAME = "Autonomous Financial Agent War Room"
 APP_SUBTITLE = "Financial-WarRoom"
@@ -37,10 +40,24 @@ KNOWN_PROVIDERS: tuple[str, ...] = (
 )
 
 
+def _env_candidates() -> list[Path]:
+    """``.env`` locations, most specific first.
+
+    Works both from a source checkout (``.env`` next to ``config.py``) and from
+    an installed console script (``.env`` in the current directory, or a per
+    user file under ``~/.config``). Earlier files win because
+    ``load_dotenv(..., override=False)`` never clobbers existing keys.
+    """
+    return [Path.cwd() / ".env", ENV_FILE, USER_ENV_FILE]
+
+
 def _load_env() -> None:
-    """Load the project ``.env`` file into the process environment."""
-    if load_dotenv is not None:
-        load_dotenv(ENV_FILE, override=False)
+    """Load the first available ``.env`` files into the process environment."""
+    if load_dotenv is None:
+        return
+    for path in _env_candidates():
+        if path.is_file():
+            load_dotenv(path, override=False)
 
 
 def _env_str(key: str, default: str = "") -> str:

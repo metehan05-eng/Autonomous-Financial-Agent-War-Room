@@ -86,6 +86,44 @@ auto → Evren → Ollama → OpenAI → Gemini → Anthropic
 
 ## Installation
 
+### Quick install (recommended)
+
+The app ships as a normal Python package, so the easiest way to install it on
+**Linux, macOS and Windows** is [pipx](https://pipx.pypa.io/), which puts the
+`financial-warroom` command on your `PATH` in its own isolated environment:
+
+```bash
+# install pipx once
+python -m pip install --user pipx
+python -m pipx ensurepath
+
+# install the app
+pipx install financial-agent-war-room
+```
+
+Then launch it from anywhere:
+
+```bash
+financial-warroom --ticker AAPL
+warroom --help          # the same command, shorter alias
+```
+
+With [uv](https://docs.astral.sh/uv/) you can skip pipx entirely:
+
+```bash
+uv tool install financial-agent-war-room
+financial-warroom
+```
+
+> **Until the package is published to PyPI**, install straight from GitHub:
+> `pipx install "git+https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room.git"`.
+
+Put your API keys in a `.env` file in the directory you launch from, or in
+`~/.config/financial-war-room/.env`. The command looks there first, so no
+configuration is needed inside the installed package.
+
+### From source (developer setup)
+
 Open a terminal and clone the repository. The `cd` command moves into the
 project directory; run the remaining commands from there:
 
@@ -178,8 +216,20 @@ HISTORY_PERIOD=1y
 
 ## Usage
 
-With the project directory open and `.venv` activated, start the app from the
-terminal:
+If you installed with pipx/uv, use the `financial-warroom` command from any
+directory. From a source checkout (with `.venv` activated) use
+`python main.py` instead — the flags are identical:
+
+```bash
+financial-warroom                      # pre-filled ticker (AAPL)
+financial-warroom --ticker BTC-USD     # pre-fill another symbol
+financial-warroom --no-llm             # deterministic rule engine, offline
+financial-warroom --rounds 3           # add one cross-examination
+financial-warroom --fast               # quicker run: tools only in the pitch round
+financial-warroom --max-tokens 4000    # larger output budget per call
+```
+
+From the source checkout the same commands read:
 
 ```bash
 python main.py                      # pre-filled ticker (AAPL)
@@ -191,7 +241,20 @@ python main.py --fast               # quicker run: tools only in the pitch round
 python main.py --max-tokens 4000    # larger output budget per call
 ```
 
-Run `python main.py --help` for the full flag list.
+Run `financial-warroom --help` (or `python main.py --help`) for the full flag
+list.
+
+### Diagnostics
+
+Verify your configuration without launching the UI (handy in scripts/CI):
+
+```bash
+financial-warroom --check          # probe the configured LLM backend and exit
+financial-warroom --version        # print the installed version
+```
+
+`--check` exits `0` when a backend is reachable (or when `--no-llm` selects the
+rule engine) and `1` with a reason on stderr otherwise.
 
 ### Keyboard shortcuts
 
@@ -234,6 +297,9 @@ ui/
   widgets.py          Metric card, streaming debate log, verdict banner
   transcript.py       Markdown transcript builder / exporter
 tests/                Offline test suite (mock provider + fixtures)
+pyproject.toml        Packaging metadata (PyPI) + ruff/mypy/pytest config
+requirements.txt      Runtime dependencies (mirror of pyproject dependencies)
+.github/workflows/    CI: lint, type-check and tests
 ```
 
 ## Development
@@ -241,10 +307,21 @@ tests/                Offline test suite (mock provider + fixtures)
 Run these commands from the project directory with `.venv` activated:
 
 ```bash
-ruff check .       # lint
-mypy .             # type-check
-pytest             # tests (fully offline, no network)
+pip install -r requirements.txt   # runtime dependencies
+pip install -e ".[dev]"           # editable install + lint/type/test/build tools
+ruff check .                      # lint
+mypy .                            # type-check
+pytest                            # tests (fully offline, no network)
 ```
+
+Build the distributable wheel and sdist locally:
+
+```bash
+python -m build                   # writes dist/*.whl and dist/*.tar.gz
+```
+
+To publish a release: bump `version` in `pyproject.toml`, then
+`python -m build && python -m twine upload dist/*`.
 
 The test suite never touches the network: `tests/mock_evren.py` implements the
 real provider streaming contract and `tests/conftest.py` stubs market data and
@@ -265,5 +342,3 @@ tool execution.
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for the
 full license text.
-
-# Autonomous-Financial-Agent-War-Room

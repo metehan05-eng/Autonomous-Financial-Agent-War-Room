@@ -1,0 +1,11 @@
+Package: financial-agent-war-room
+Version: @VERSION@
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: Metehan <metehan05-eng@users.noreply.github.com>
+Homepage: https://github.com/metehan05-eng/Autonomous-Financial-Agent-War-Room
+Depends: python3 (>= 3.10), python3-venv
+Description: Multi-agent market debate in your terminal
+ Four AI desks debate a financial instrument and a Chief Risk Officer
+ delivers a single evidence-backed verdict, streamed live in a Textual TUI.
